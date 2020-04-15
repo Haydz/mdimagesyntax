@@ -1,21 +1,8 @@
-// the idea is to write a script that will
 /*
-: create a text file with the syntax of including images in markdown format
+create a text file with the syntax of including images in markdown format
 so that a user can copy paste the syntact into their blog
 
 steps:
-
-1) identify the directory path for the images based on the root level of the project
-example : /blog-folder/images/image-1.jpg becomes /images/image-1.jpg
-
-2)take input for depth level, (1 folder down, 2 folder down)
-
-3) take image file name append to directory path
-
-4)must work on linux and windows
-*/
-
-/*
 References
 https://yourbasic.org/golang/list-files-in-directory/
 
@@ -33,73 +20,46 @@ import (
 	"strings"
 )
 
-// func doWindows() {
-// 	directory, err := exec.Command("cmd", "/C", "echo %cd%").Output()
-// 	if err != nil {
-// 		fmt.Println("Error executing command", err)
-// 	}
-// 	return string(directory[:])
-// }
-
-// func doLinux() {
-// 	directory, err := exec.Command("ls").Output()
-// 	if err != nil {
-// 		fmt.Println("Error executing command", err)
-// 	}
-// 	return string(directory[:])
-// }
-
-func main() {
-	// var command string
+func OSCheck() ([]uint8, string) {
 	var osDirFormat string
-	var directory []uint8
+	var directoryFind []uint8
 	if runtime.GOOS == "windows" {
 		fmt.Println(runtime.GOOS)
 		//command =
 		osDirFormat = "\\"
 		// err := nil
-		directory, _ = exec.Command("cmd", "/C", "echo %cd%").Output()
-		//fmt.Println(reflect.TypeOf(directory).String())
-		//NEED TO FIX ERROR CHECKING
-		// if err != nil {
-		// 	fmt.Println("Error executing command", err)
-		// }
+		directoryFind, _ = exec.Command("cmd", "/C", "echo %cd%").Output()
+
 	} else if runtime.GOOS == "linux" {
 		fmt.Println("linux")
-		directory, _ = exec.Command("pwd").Output()
+		directoryFind, _ = exec.Command("pwd").Output()
 		osDirFormat = "/"
 
 	}
-	// directory, err := exec.Command("cmd", "/C", "echo %cd%").Output()
-	//identify current working directory
-	// windows: echo %cd% linux :pwd:
-	// directory, err := exec.Command("cmd", "/C", "echo %cd%").Output()
-	// directory, err := exec.Command(command).Output()
-	// if err != nil {
-	// 	fmt.Println("Error executing command", err)
-	// }
-	//fmt.Println(string(directory[:]))
-	//directory, err := exec.Command("cmd", "/C", "echo %cd%").Output()
-	test := string(directory[:])
-	//fmt.Println(reflect.TypeOf(test).String())
-	fmt.Printf("%q\n", strings.Split(test, osDirFormat))
+	return directoryFind, osDirFormat
 
-	//windows dirs split into slices
-	testSplit := strings.Split(test, osDirFormat)
+}
+
+func main() {
+	// var command string
+	var osDirFormat string    // Windows = "\" Linux "/"
+	var directoryFind []uint8 // saving command output into a variable
+
+	//Checking if Windows or Linux
+	directoryFind, osDirFormat = OSCheck()
+	//turning cmd command back into string
+	fullImageDirectory := string(directoryFind[:])
+
+	//Splitting long directory by OS Dir structure ("\" or "/")
+	fullImageDirectorySplit := strings.Split(fullImageDirectory, osDirFormat)
+
 	//identifying current working Dir
-
-	workingDir := testSplit[len(testSplit)-1]
+	workingDir := fullImageDirectorySplit[len(fullImageDirectorySplit)-1]
 	workingDir = strings.TrimSpace(workingDir) + osDirFormat
 	fmt.Println("Working Directory is:", workingDir)
 	workingDir = strings.TrimSpace(workingDir)
-	//identify files in folder
-	// fmt.Println("testing dir")
-	// dir := path.Base(test)
-	// fmt.Println(dir)
 
-	//fmt.Println("On Unix:", filepath.SplitList(test))
-	//fmt.Println(filepath.Base(test))
-
+	//searching current directory for image files
 	filesList, err := ioutil.ReadDir(".")
 	if err != nil {
 		log.Fatal(err)
@@ -107,24 +67,23 @@ func main() {
 	//collecting current list of files
 	var filesSlice []string
 	for _, files := range filesList {
-		// fmt.Println(files.Name())
-		if files.Name() != "image_syntax.go" && files.Name() != "test.txt" && files.Name() != "image_syntax.exe" {
-			// if files.Name() != ("image_syntax.go", "test.txt", "image_syntax.exe") {
+		// identifying image files to apply Markdown syntax too. Place within separate slice
+		if files.Name() != "image_syntax.go" && files.Name() != "test.txt" && files.Name() != "image_syntax.exe" && files.Name() != ".git" && files.Name() != "README.md" {
 			filesSlice = append(filesSlice, files.Name())
 		}
 	}
 
-	//fmt.Println(filesSlice)
-	outputFile, err := os.Create("test.txt")
+	//opening file to write output to
+	outputFile, err := os.Create("mdsyntax_output.txt")
 	if err != nil {
 		fmt.Println(err)
 
 	}
 	defer outputFile.Close()
+	//iterating through images files
 	for i := range filesSlice {
 		pathForFile := workingDir + filesSlice[i]
-		//fmt.Printf("![%s](%s)\n", filesSlice[i], pathForFile)
-		//stringToWrite := "![%s](%s)\n", filesSlice[i], pathForFile
+		//writing image markdown syanx for iamges
 		stringToWrite := "![" + filesSlice[i] + "](" + pathForFile + ")"
 		fmt.Println(stringToWrite)
 		_, err := io.WriteString(outputFile, stringToWrite+"\n")
@@ -132,21 +91,5 @@ func main() {
 			fmt.Println(err)
 		}
 	}
-	//return outputFile.Sync()
 
 }
-
-// 	//does not work for windows
-// 	err2 := filepath.Walk(".",
-// 		func(path string, info os.FileInfo, err2 error) error {
-// 			if err2 != nil {
-// 				return err2
-// 			}
-// 			fmt.Println(path)
-// 			return nil
-// 		})
-// 	if err2 != nil {
-// 		log.Println(err)
-// 	}
-
-// }
