@@ -1,0 +1,2 @@
+![imagestest1.jpg](mdimagesyntax/imagestest1.jpg)
+![imagetest2.jpg](mdimagesyntax/imagetest2.jpg)

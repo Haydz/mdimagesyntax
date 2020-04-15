@@ -24,14 +24,14 @@ func OSCheck() ([]uint8, string) {
 	var osDirFormat string
 	var directoryFind []uint8
 	if runtime.GOOS == "windows" {
-		fmt.Println(runtime.GOOS)
+		fmt.Println("OS identified as Windows")
 		//command =
 		osDirFormat = "\\"
 		// err := nil
 		directoryFind, _ = exec.Command("cmd", "/C", "echo %cd%").Output()
 
 	} else if runtime.GOOS == "linux" {
-		fmt.Println("linux")
+		fmt.Println("OS identified as: Linux")
 		directoryFind, _ = exec.Command("pwd").Output()
 		osDirFormat = "/"
 
@@ -55,8 +55,8 @@ func main() {
 
 	//identifying current working Dir
 	workingDir := fullImageDirectorySplit[len(fullImageDirectorySplit)-1]
-	workingDir = strings.TrimSpace(workingDir) + osDirFormat
-	fmt.Println("Working Directory is:", workingDir)
+	workingDir = strings.TrimSpace(workingDir)
+	fmt.Println("Identified working directory is:", workingDir)
 	workingDir = strings.TrimSpace(workingDir)
 
 	//searching current directory for image files
@@ -68,21 +68,23 @@ func main() {
 	var filesSlice []string
 	for _, files := range filesList {
 		// identifying image files to apply Markdown syntax too. Place within separate slice
-		if files.Name() != "image_syntax.go" && files.Name() != "test.txt" && files.Name() != "image_syntax.exe" && files.Name() != ".git" && files.Name() != "README.md" {
+		if files.Name() != "image_syntax.go" && files.Name() != "mdsyntax_output.txt" && files.Name() != "image_syntax.exe" && files.Name() != ".git" && files.Name() != "README.md" {
 			filesSlice = append(filesSlice, files.Name())
 		}
 	}
 
 	//opening file to write output to
-	outputFile, err := os.Create("mdsyntax_output.txt")
+	outputFileName := "mdsyntax_output.txt"
+	outputFile, err := os.Create(outputFileName)
 	if err != nil {
 		fmt.Println(err)
 
 	}
 	defer outputFile.Close()
 	//iterating through images files
+	fmt.Println("===Find Markdown syntax of Images below: ===")
 	for i := range filesSlice {
-		pathForFile := workingDir + filesSlice[i]
+		pathForFile := workingDir + "/" + filesSlice[i]
 		//writing image markdown syanx for iamges
 		stringToWrite := "![" + filesSlice[i] + "](" + pathForFile + ")"
 		fmt.Println(stringToWrite)
@@ -91,5 +93,6 @@ func main() {
 			fmt.Println(err)
 		}
 	}
-
+	fmt.Println("====\nComplete, please find output file location: ", workingDir+osDirFormat+outputFileName)
+	fmt.Println("or copy and paste output from above.")
 }
