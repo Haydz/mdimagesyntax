@@ -2,6 +2,8 @@
 Automatically creates markdown syntax of images within a folder. 
 
 Example output:
+
+```
  go run .\image_syntax.go
 OS identified as Windows
 Identified working directory is: mdimagesyntax
@@ -11,3 +13,4 @@ Identified working directory is: mdimagesyntax
 ====
 Complete, please find output file location:  mdimagesyntax\mdsyntax_output.txt
 or copy and paste output from above.
+```
